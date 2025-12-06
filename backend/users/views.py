@@ -36,15 +36,40 @@ class UserDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     def perform_destroy(self, instance: AppUser) -> None:
         """
         On user deletion, also remove all associated audio files from disk.
-        The UserAudio rows themselves will be removed via the FK cascade, but
-        Django does not automatically delete the underlying files, so we clean
-        them up explicitly.
-        """
-        for audio in instance.audios.all():
-            if audio.file and os.path.isfile(audio.file.path):
-                os.remove(audio.file.path)
 
+        The related UserAudio rows will be removed via the FK cascade, but Django
+        does not automatically delete the underlying files, so we clean them up
+        explicitly. This is defensive and works even if the user has no audio.
+        """
+        # Get related audios in a safe way
+        audios_qs = getattr(instance, "audios", None)
+
+        if audios_qs is not None:
+            for audio in audios_qs.all():
+                file_field = getattr(audio, "file", None)
+
+                # Skip if there's no file associated
+                if not file_field:
+                    continue
+
+                # Some broken rows may have a FileField with no actual file
+                try:
+                    file_path = file_field.path
+                except (ValueError, AttributeError):
+                    # in case 'file' attribute has no file associated with it.
+                    continue
+
+                # Remove file from disk if it exists
+                if file_path and os.path.isfile(file_path):
+                    try:
+                        os.remove(file_path)
+                    except FileNotFoundError:
+                        # If file was already deleted manually, ignore
+                        pass
+
+        # Finally delete the user (and cascade its audio rows)
         instance.delete()
+
 
 
 class UserAudioAPIView(APIView):

@@ -68,8 +68,6 @@ repo-root/
 │   ├── media/
 │       └── user_audio/                 # uploaded audio files
 │
-│
-│
 ├── postman/
 │   └── user-audio-api-collection.json  # exported Postman collection for api testing
 │

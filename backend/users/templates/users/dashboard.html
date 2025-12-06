@@ -364,20 +364,30 @@
       }
 
       function resetAudioUI() {
-        document.getElementById("audio-section").style.display = "none";
-        document.getElementById("upload-section").style.display = "none";
-        document.getElementById("history-section").style.display = "none";
-        document.getElementById("no-audio-section").style.display = "block";
+        const audioSection = document.getElementById("audio-section");
+        const uploadSection = document.getElementById("upload-section");
+        const historySection = document.getElementById("history-section");
+        const noAudioSection = document.getElementById("no-audio-section");
+        const player = document.getElementById("audio-player");
+        const refreshBtn = document.getElementById("refresh-user-btn");
+
+        if (audioSection) audioSection.style.display = "none";
+        if (uploadSection) uploadSection.style.display = "none";
+        if (historySection) historySection.style.display = "none";
+        if (noAudioSection) noAudioSection.style.display = "block";
+
         setText("active-audio-meta", "");
         setText("upload-message", "");
         setText("audio-error", "");
-        const audio = document.getElementById("audio-player");
-        audio.removeAttribute("src");
-        if (plyrInstance) {
-          plyrInstance.source = { type: "audio", sources: [] };
+
+        if (player) {
+            player.removeAttribute("src");
+            player.load(); // force UI reset
         }
-        document.getElementById("refresh-user-btn").disabled = true;
-      }
+
+        if (refreshBtn) refreshBtn.disabled = true;
+        }
+
 
       async function onUserSelected(userId) {
         selectedUserId = userId;
