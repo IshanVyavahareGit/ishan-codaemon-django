@@ -6,7 +6,7 @@ This repository contains a full-stack Django application for managing users and 
 
 ## Features
 
-- **User Management**: Full CRUD (Create, Read, Update, Delete) operations for users.
+- **User Management**: Create, Read, Delete operations for users.
 - **Audio Uploads**: Users can upload audio files, with validation for file type and size.
 - **Active Audio Logic**: Ensures that only one audio file per user is marked as "active" at any given time.
 - **Audio History**: Retains all previous audio uploads as "inactive" for historical purposes.
@@ -104,12 +104,12 @@ The project is organized into a `backend` Django project, a `postman` directory 
 
 ```
 .
-├── backend/                  # Contains the Django project
+├── main_app/                 # Contains the Django project
 │   ├── backend/              # Django project configuration (settings.py, urls.py)
 │   ├── users/                # The main Django app
 │   │   ├── migrations/       # Database migrations
 │   │   ├── management/       # Custom Django management commands (e.g., 'seed')
-│   │   ├── templates/        # HTML templates for the dashboard
+│   │   ├── templates/        # Frontend - HTML for the dashboard
 │   │   ├── models.py         # AppUser and UserAudio database models
 │   │   ├── serializers.py    # DRF serializers for API data conversion
 │   │   ├── urls.py           # URL routing for the 'users' app
@@ -118,6 +118,7 @@ The project is organized into a `backend` Django project, a `postman` directory 
 │   ├── manage.py             # Django's command-line utility
 │   └── requirements.txt      # Python dependencies
 ├── docker-compose.yml        # Docker Compose configuration
+├── mp3_samples               # Sample mp3 files to test
 └── postman/                  # Postman collection for API testing
 ```
 
