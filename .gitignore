@@ -1,0 +1,76 @@
+# ========================================
+# Python
+# ========================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Local python environment files
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ========================================
+# Django
+# ========================================
+# SQLite database
+db.sqlite3
+db.sqlite3-journal
+
+# Django media (uploaded audio)
+media/
+# keeping the folder structure
+!media/.gitkeep
+
+# Static files (collected via collectstatic)
+staticfiles/
+static/
+
+# Secret key or env files
+.env
+*.env
+
+# ========================================
+# OS Files
+# ========================================
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# Linux temp files
+*~
+
+# ========================================
+# Editor Settings
+# ========================================
+.vscode/
+.idea/
+
+# JetBrains
+*.iml
+*.ipr
+*.iws
+
+# ========================================
+# Logs
+# ========================================
+*.log
+
+# ========================================
+# Docker
+# ========================================
+# Python bytecode in Docker build context
+backend/__pycache__/
+backend/*/__pycache__/
+
+# Prevent committing local container artifacts
+*.pid

@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <title>User Audio Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap 5 -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    >
+
+    <!-- Plyr (audio player) -->
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+
+    <style>
+      html, body {
+        height: 100%;
+        background-color: #020617;
+      }
+
+      body {
+        color: #e5e7eb;
+      }
+
+      .app-bg {
+        background: radial-gradient(circle at top, #1f2933 0, #020617 45%);
+        min-height: 100vh;
+      }
+
+      .navbar-dark {
+        background-color: #020617 !important;
+        border-bottom: 1px solid #111827;
+      }
+
+      .card-dark {
+        background-color: #020617;
+        border: 1px solid #374151;
+      }
+
+      .card-dark .card-header {
+        background-color: #020617;
+        border-bottom: 1px solid #374151;
+      }
+
+      .table-dark-custom {
+        --bs-table-bg: transparent;
+        --bs-table-color: #e5e7eb;
+        --bs-table-border-color: #374151;
+      }
+
+      .list-group-dark .list-group-item {
+        background-color: transparent;
+        border-color: #374151;
+        color: #e5e7eb;
+      }
+
+      .form-control,
+      .form-select {
+        background-color: #020617;
+        border-color: #374151;
+        color: #e5e7eb;
+      }
+
+      .form-control:focus,
+      .form-select:focus {
+        box-shadow: none;
+        border-color: #2563eb;
+      }
+
+      ::placeholder {
+        color: #6b7280 !important;
+      }
+
+      .clickable-row {
+        cursor: pointer;
+      }
+
+      .clickable-row:hover {
+        background-color: #111827;
+      }
+
+      .badge-active {
+        background-color: #16a34a !important;
+      }
+
+      .badge-inactive {
+        background-color: #4b5563 !important;
+      }
+
+      .text-soft {
+        color: #9ca3af !important;
+      }
+
+      /* Plyr theme overrides to match dark UI */
+      :root {
+        --plyr-audio-controls-background: #020617;
+        --plyr-audio-controls-color: #e5e7eb;
+        --plyr-audio-progress-buffered-color: #374151;
+        --plyr-color-main: #2563eb;
+      }
+
+      /* Ensure headings/labels are light */
+      h1, h2, h3, h4, h5, h6,
+      .card-header,
+      .card-header * ,
+      .card-body h5,
+      .card-body h6,
+      label {
+        color: #e5e7eb !important;
+      }
+
+      .card-body small {
+        color: #9ca3af !important;
+      }
+    </style>
+  </head>
+  <body class="app-bg">
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark mb-3">
+      <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1">User Audio Manager</span>
+      </div>
+    </nav>
+
+    <div class="container-fluid pb-4">
+      <div class="row g-4">
+        <!-- Users column -->
+        <div class="col-lg-4">
+          <div class="card card-dark shadow-sm h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <div>
+                <h5 class="mb-0">Users</h5>
+                <small id="user-count-label" class="text-soft">Loading...</small>
+              </div>
+            </div>
+            <div class="card-body">
+
+              <!-- Create user form -->
+              <form id="create-user-form" class="mb-3">
+                <div class="row g-2">
+                  <div class="col-12">
+                    <input type="text" name="name" class="form-control form-control-sm"
+                           placeholder="Name" required>
+                  </div>
+                  <div class="col-12">
+                    <input type="email" name="email" class="form-control form-control-sm"
+                           placeholder="Email" required>
+                  </div>
+                  <div class="col-12">
+                    <input type="text" name="bio" class="form-control form-control-sm"
+                           placeholder="Bio (optional)">
+                  </div>
+                  <div class="col-12 d-flex justify-content-end">
+                    <button type="submit" class="btn btn-sm btn-success">
+                      + Add User
+                    </button>
+                  </div>
+                </div>
+              </form>
+
+              <hr class="border-secondary">
+
+              <!-- Users table -->
+              <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                <table class="table table-sm align-middle table-dark-custom">
+                  <thead class="text-soft">
+                    <tr>
+                      <th scope="col">Name</th>
+                      <th scope="col">Email</th>
+                      <th scope="col" class="text-end">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="users-table-body">
+                    <!-- Filled by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audio column -->
+        <div class="col-lg-8">
+          <div class="card card-dark shadow-sm h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <div>
+                <h5 class="mb-0">Audio for Selected User</h5>
+              </div>
+              <button id="refresh-user-btn" class="btn btn-sm btn-outline-light" disabled>
+                Refresh
+              </button>
+            </div>
+            <div class="card-body">
+
+              <!-- Active audio section -->
+              <div id="audio-section" class="mb-4" style="display:none;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h6 class="mb-0">Active Audio</h6>
+                  <button id="delete-audio-btn" class="btn btn-sm btn-outline-danger">
+                    Delete Active Audio
+                  </button>
+                </div>
+
+                <!-- Plyr audio element -->
+                <audio id="audio-player" class="js-player" controls></audio>
+
+                <small id="active-audio-meta" class="text-soft"></small>
+              </div>
+
+              <div id="no-audio-section" class="mb-4 text-soft">
+                No active audio for this user.
+              </div>
+
+              <!-- Upload form -->
+              <div id="upload-section" class="mb-4" style="display:none;">
+                <h6>Upload / Replace Audio</h6>
+                <form id="upload-audio-form" enctype="multipart/form-data">
+                  <div class="row g-2 align-items-center">
+                    <div class="col-md-8">
+                      <input type="file" name="file" id="audio-file-input"
+                             class="form-control form-control-sm"
+                             accept="audio/*" required>
+                    </div>
+                    <div class="col-md-4 d-flex justify-content-end">
+                      <button type="submit" class="btn btn-sm btn-success">
+                        Upload Audio
+                      </button>
+                    </div>
+                  </div>
+                </form>
+                <small id="upload-message" class="text-soft"></small>
+              </div>
+
+              <!-- Audio history -->
+              <div id="history-section" style="display:none;">
+                <h6 class="mb-2">Audio History</h6>
+                <ul id="history-list" class="list-group list-group-flush list-group-dark small">
+                  <!-- Filled by JS -->
+                </ul>
+              </div>
+
+              <div id="audio-error" class="text-danger small mt-2"></div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Plyr JS -->
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+
+    <script>
+      const API_BASE = "/api";
+      let selectedUserId = null;
+      let plyrInstance = null;
+
+      function setText(id, text) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+      }
+
+      function formatTimestamp(ts) {
+        const d = new Date(ts);
+        if (isNaN(d.getTime())) return ts;
+        return d.toLocaleString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        });
+      }
+
+      async function fetchJSON(url, options = {}) {
+        const res = await fetch(url, options);
+        const data = await res.json().catch(() => null);
+        if (!res.ok) {
+          const msg = data && data.detail ? data.detail : JSON.stringify(data);
+          throw new Error(msg || "Request failed");
+        }
+        return data;
+      }
+
+      function initAudioPlayer() {
+        const audio = document.getElementById("audio-player");
+        if (!audio) return;
+
+        if (plyrInstance) {
+          plyrInstance.destroy();
+        }
+
+        plyrInstance = new Plyr(audio, {
+          controls: ['play', 'progress', 'current-time', 'duration', 'mute', 'volume'],
+          autoplay: false
+        });
+      }
+
+      async function loadUsers() {
+        const tbody = document.getElementById("users-table-body");
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-soft">Loading...</td></tr>';
+
+        try {
+          const users = await fetchJSON(`${API_BASE}/users/`);
+          tbody.innerHTML = "";
+          setText("user-count-label", `${users.length} user${users.length === 1 ? "" : "s"}`);
+
+          users.forEach(user => {
+            const tr = document.createElement("tr");
+            tr.classList.add("clickable-row");
+            tr.dataset.userId = user.id;
+
+            tr.innerHTML = `
+              <td>${user.name}</td>
+              <td class="text-truncate text-soft" style="max-width: 160px;">${user.email}</td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-outline-danger btn-delete-user" data-user-id="${user.id}">
+                  Delete
+                </button>
+              </td>
+            `;
+
+            tbody.appendChild(tr);
+          });
+
+          // Row click selects user
+          tbody.querySelectorAll(".clickable-row").forEach(row => {
+            row.addEventListener("click", (e) => {
+              if (e.target.classList.contains("btn-delete-user")) return;
+              const userId = row.dataset.userId;
+              onUserSelected(userId);
+            });
+          });
+
+          // Bind delete buttons
+          tbody.querySelectorAll(".btn-delete-user").forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+              e.stopPropagation();
+              const userId = btn.dataset.userId;
+              if (!confirm("Delete this user and all associated audio?")) return;
+
+              try {
+                await fetch(`${API_BASE}/users/${userId}/`, { method: "DELETE" });
+                if (String(selectedUserId) === String(userId)) {
+                  selectedUserId = null;
+                  setText("selected-user-label", "No user selected");
+                  resetAudioUI();
+                }
+                loadUsers();
+              } catch (err) {
+                alert("Failed to delete user: " + err.message);
+              }
+            });
+          });
+
+        } catch (err) {
+          tbody.innerHTML = `<tr><td colspan="3" class="text-danger">Failed to load users.</td></tr>`;
+          setText("user-count-label", "Error loading users");
+        }
+      }
+
+      function resetAudioUI() {
+        document.getElementById("audio-section").style.display = "none";
+        document.getElementById("upload-section").style.display = "none";
+        document.getElementById("history-section").style.display = "none";
+        document.getElementById("no-audio-section").style.display = "block";
+        setText("active-audio-meta", "");
+        setText("upload-message", "");
+        setText("audio-error", "");
+        const audio = document.getElementById("audio-player");
+        audio.removeAttribute("src");
+        if (plyrInstance) {
+          plyrInstance.source = { type: "audio", sources: [] };
+        }
+        document.getElementById("refresh-user-btn").disabled = true;
+      }
+
+      async function onUserSelected(userId) {
+        selectedUserId = userId;
+        document.getElementById("refresh-user-btn").disabled = false;
+        setText("audio-error", "");
+        setText("upload-message", "");  // clear previous success message
+        await loadUserAudioState();
+      }
+
+      async function loadUserAudioState() {
+        if (!selectedUserId) return;
+
+        const audioSection = document.getElementById("audio-section");
+        const noAudioSection = document.getElementById("no-audio-section");
+        const uploadSection = document.getElementById("upload-section");
+        const historySection = document.getElementById("history-section");
+        const historyList = document.getElementById("history-list");
+        const audioMeta = document.getElementById("active-audio-meta");
+        const errorEl = document.getElementById("audio-error");
+        const audio = document.getElementById("audio-player");
+
+        errorEl.textContent = "";
+        audioMeta.textContent = "";
+        historyList.innerHTML = "";
+        setText("upload-message", ""); // clear on each load
+
+        uploadSection.style.display = "block";
+
+        // Load active audio
+        try {
+          const active = await fetchJSON(`${API_BASE}/users/${selectedUserId}/audio/`);
+          audioSection.style.display = "block";
+          noAudioSection.style.display = "none";
+
+          // Set Plyr source
+          if (plyrInstance) {
+            plyrInstance.source = {
+              type: "audio",
+              sources: [{ src: active.file }]
+            };
+          } else {
+            audio.src = active.file;
+          }
+
+          audioMeta.textContent = `${formatTimestamp(active.uploaded_at)}`;
+        } catch (err) {
+          // No active audio
+          audioSection.style.display = "none";
+          noAudioSection.style.display = "block";
+          if (plyrInstance) {
+            plyrInstance.source = { type: "audio", sources: [] };
+          } else {
+            audio.removeAttribute("src");
+          }
+        }
+
+        // Load history
+        try {
+          const history = await fetchJSON(`${API_BASE}/users/${selectedUserId}/audio/?history=1`);
+          if (history.length === 0) {
+            historySection.style.display = "none";
+          } else {
+            historySection.style.display = "block";
+            historyList.innerHTML = "";
+            history.forEach(a => {
+              const fileName = a.file.split("/").pop();  // only filename
+              const li = document.createElement("li");
+              li.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
+              li.innerHTML = `
+                <div>
+                  <div class="small">${fileName}</div>
+                  <div class="text-soft small">${formatTimestamp(a.uploaded_at)}</div>
+                </div>
+                <span class="badge ${a.is_active ? "badge-active" : "badge-inactive"}">
+                  ${a.is_active ? "Active" : "Inactive"}
+                </span>
+              `;
+              historyList.appendChild(li);
+            });
+          }
+        } catch (err) {
+          console.warn("Failed to load history", err);
+        }
+      }
+
+      // Create user form handler
+      document.getElementById("create-user-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const payload = {
+          name: form.name.value.trim(),
+          email: form.email.value.trim(),
+          bio: form.bio.value.trim(),
+        };
+        if (!payload.name || !payload.email) return;
+
+        try {
+          await fetchJSON(`${API_BASE}/users/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          form.reset();
+          loadUsers();
+        } catch (err) {
+          alert("Failed to create user: " + err.message);
+        }
+      });
+
+      // Upload audio handler
+      document.getElementById("upload-audio-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!selectedUserId) {
+          alert("Select a user first.");
+          return;
+        }
+        const msgEl = document.getElementById("upload-message");
+        const errorEl = document.getElementById("audio-error");
+        msgEl.textContent = "";
+        errorEl.textContent = "";
+
+        const formData = new FormData(e.target);
+        const file = formData.get("file");
+        if (!file || !file.name) {
+          errorEl.textContent = "Please choose an audio file.";
+          return;
+        }
+
+        try {
+          const res = await fetch(`${API_BASE}/users/${selectedUserId}/audio/`, {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await res.json().catch(() => null);
+          if (!res.ok) {
+            throw new Error(data && data.detail ? data.detail : JSON.stringify(data));
+          }
+
+          msgEl.textContent = "Audio uploaded successfully.";
+          document.getElementById("audio-file-input").value = "";
+          await loadUserAudioState();
+        } catch (err) {
+          errorEl.textContent = "Upload failed: " + err.message;
+        }
+      });
+
+      // Delete active audio handler
+      document.getElementById("delete-audio-btn").addEventListener("click", async () => {
+        if (!selectedUserId) return;
+        if (!confirm("Delete the active audio for this user?")) return;
+
+        const errorEl = document.getElementById("audio-error");
+        errorEl.textContent = "";
+
+        try {
+          const res = await fetch(`${API_BASE}/users/${selectedUserId}/audio/`, {
+            method: "DELETE",
+          });
+          if (!res.ok && res.status !== 204) {
+            const data = await res.json().catch(() => null);
+            throw new Error(data && data.detail ? data.detail : "Failed to delete audio");
+          }
+          await loadUserAudioState();
+        } catch (err) {
+          errorEl.textContent = "Failed to delete audio: " + err.message;
+        }
+      });
+
+      // Refresh button
+      document.getElementById("refresh-user-btn").addEventListener("click", () => {
+        if (!selectedUserId) return;
+        loadUserAudioState();
+      });
+
+      // Initial load
+      initAudioPlayer();
+      loadUsers();
+    </script>
+  </body>
+</html>

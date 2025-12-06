@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  web:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: user-audio-app-web
+    ports:
+      - "8000:8000"
+    volumes:
+      # persist uploaded audio files outside the container
+      - ./backend/media:/app/media
+    environment:
+      # optional envs if you decide to read them in settings.py later
+      DJANGO_DEBUG: "1"
