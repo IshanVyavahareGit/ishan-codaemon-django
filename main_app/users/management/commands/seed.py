@@ -8,6 +8,5 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         AppUser.objects.all().delete()
         AppUser.objects.create(name="Ishan", email="ishan@example.com", bio="AI Engineer")
-        AppUser.objects.create(name="Rohit", email="rohit@example.com", bio="Backend Developer")
         AppUser.objects.create(name="Sara", email="sara@example.com", bio="Designer")
         self.stdout.write(self.style.SUCCESS("Successfully seeded users"))
