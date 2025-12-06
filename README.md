@@ -37,6 +37,7 @@ Features:
 ---
 
 ## 2. Project Structure
+`
 repo-root/
 │
 ├── backend/
@@ -73,3 +74,4 @@ repo-root/
 │   └── user-audio-api-collection.json  # exported Postman collection for api testing
 │
 └── README.md
+`
